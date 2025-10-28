@@ -1,0 +1,51 @@
+services:
+
+ services:
+
+  nginx-proxy:
+    image: nginxproxy/nginx-proxy
+    container_name: nginx-proxy
+    networks:
+      - link
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - /var/run/docker.sock:/tmp/docker.sock:ro
+    depends_on:
+      - grafana
+      - prometheus
+
+  prometheus:
+    image: docker.io/ekko972/fynovrepo:prome
+    container_name: prometheus
+    build:
+      context: .
+      target: prome
+    networks:
+      - link
+    environment:
+      - VIRTUAL_HOST=ekkoprometheus.duckdns.org
+      - VIRTUAL_PORT=9090
+    volumes:
+      - prometheus_data:/docker/prometheus
+
+  grafana:
+    container_name: grafana
+    image: docker.io/ekko972/fynovrepo:graf
+    build:
+      context: .
+      target: graf
+    networks:
+      - link
+    environment:
+      - VIRTUAL_HOST=ekkoprometheus.duckdns.org
+      - VIRTUAL_PORT=3000
+
+networks:
+  link:
+    driver: bridge
+
+volumes:
+  prometheus_data:
+  grafana_data:
